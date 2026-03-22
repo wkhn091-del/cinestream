@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CineStream</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;900&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#141414;--surface:#1a1a1a;--surface2:#222;--surface3:#2a2a2a;
+  --border:#333;--border2:#444;--accent:#e50914;--accent-hover:#f40612;
+  --accent2:#ff6b35;--text:#fff;--muted:#aaa;--gold:#f5c518;
+  --input-bg:#333;--input-border:#555;
+}
+html{scroll-behavior:smooth;}
+body{font-family:'Heebo',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;direction:rtl;overflow-x:hidden;}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:#444;border-radius:3px;}
+
+/* ===================== AUTH SCREENS ===================== */
+#authScreen{
+  position:fixed;inset:0;z-index:1000;
+  background:linear-gradient(rgba(0,0,0,0.6),rgba(0,0,0,0.6)),
+    url('https://assets.nflxext.com/ffe/siteui/vlv3/9134db96-10d6-4a64-a619-a21da22f8999/mobile/IL-en-20240219-popsignuptwoweeks-perspective_alpha_website_medium.jpg') center/cover no-repeat;
+  display:flex;flex-direction:column;
+}
+.auth-header{padding:24px 48px;display:flex;align-items:center;justify-content:space-between;}
+.auth-logo{font-size:32px;font-weight:900;color:var(--accent);letter-spacing:-2px;}
+.auth-center{flex:1;display:flex;align-items:center;justify-content:center;padding:20px;}
+.auth-box{
+  background:rgba(0,0,0,0.85);border-radius:8px;padding:60px 68px;
+  width:100%;max-width:460px;backdrop-filter:blur(8px);
+}
+.auth-title{font-size:32px;font-weight:700;margin-bottom:28px;}
+.auth-input{
+  width:100%;background:var(--input-bg);border:1px solid var(--input-border);
+  border-radius:4px;padding:18px 20px;color:var(--text);font-family:'Heebo',sans-serif;
+  font-size:16px;outline:none;transition:all 0.2s;margin-bottom:16px;display:block;
+}
+.auth-input:focus{border-color:#aaa;background:#454545;}
+.auth-input::placeholder{color:#8c8c8c;}
+.auth-input.error{border-color:#e87c03;}
+.field-error{color:#e87c03;font-size:13px;margin-top:-12px;margin-bottom:12px;}
+.btn-auth{
+  width:100%;background:var(--accent);color:#fff;border:none;border-radius:4px;
+  padding:17px;font-size:16px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;
+  margin-bottom:12px;transition:all 0.2s;position:relative;
+}
+.btn-auth:hover:not(:disabled){background:var(--accent-hover);}
+.btn-auth:disabled{opacity:0.6;cursor:not-allowed;}
+.btn-google{
+  width:100%;background:#fff;color:#333;border:none;border-radius:4px;
+  padding:15px;font-size:15px;font-weight:600;cursor:pointer;font-family:'Heebo',sans-serif;
+  display:flex;align-items:center;justify-content:center;gap:10px;transition:all 0.2s;
+  margin-bottom:20px;
+}
+.btn-google:hover{background:#f1f1f1;}
+.btn-google img{width:20px;height:20px;}
+.divider{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.divider-line{flex:1;height:1px;background:#444;}
+.divider-text{color:#8c8c8c;font-size:14px;}
+.auth-switch{color:#8c8c8c;font-size:15px;margin-top:10px;}
+.auth-switch span{color:#fff;cursor:pointer;font-weight:600;}
+.auth-switch span:hover{text-decoration:underline;}
+.auth-footer-text{font-size:13px;color:#8c8c8c;margin-top:16px;line-height:1.5;}
+
+/* VERIFY SCREEN */
+.verify-box{
+  background:rgba(0,0,0,0.85);border-radius:8px;padding:60px 48px;
+  width:100%;max-width:480px;text-align:center;backdrop-filter:blur(8px);
+}
+.verify-icon{font-size:64px;margin-bottom:20px;}
+.verify-title{font-size:26px;font-weight:700;margin-bottom:12px;}
+.verify-desc{color:#aaa;font-size:15px;line-height:1.7;margin-bottom:28px;}
+.verify-email-highlight{color:#fff;font-weight:700;}
+.btn-resend{
+  background:transparent;border:1px solid #555;color:#fff;border-radius:4px;
+  padding:12px 24px;font-size:14px;cursor:pointer;font-family:'Heebo',sans-serif;
+  margin-bottom:12px;transition:all 0.2s;
+}
+.btn-resend:hover{border-color:#aaa;}
+.btn-check{
+  width:100%;background:var(--accent);color:#fff;border:none;border-radius:4px;
+  padding:15px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;
+  transition:all 0.2s;
+}
+.btn-check:hover{background:var(--accent-hover);}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:32px;right:50%;transform:translateX(50%) translateY(120px);
+  background:#2a2a2a;border-radius:8px;padding:14px 24px;font-size:14px;
+  z-index:9999;transition:transform 0.35s cubic-bezier(.22,.68,0,1.2);
+  display:flex;align-items:center;gap:10px;box-shadow:0 8px 40px rgba(0,0,0,0.6);
+  max-width:380px;
+}
+.toast.show{transform:translateX(50%) translateY(0);}
+.toast.success{border-left:4px solid #2ecc71;}
+.toast.error{border-left:4px solid var(--accent);}
+.toast.info{border-left:4px solid #3498db;}
+
+/* SPINNER */
+.spin{display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ===================== MAIN APP ===================== */
+#appScreen{display:none;min-height:100vh;}
+
+/* HEADER */
+.header{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  padding:0 4%;height:68px;display:flex;align-items:center;gap:20px;
+  transition:background 0.4s;
+}
+.header.scrolled{background:var(--bg);}
+.logo{font-size:26px;font-weight:900;color:var(--accent);letter-spacing:-1.5px;flex-shrink:0;cursor:pointer;}
+.nav{display:flex;gap:4px;flex:1;}
+.nav-btn{background:none;border:none;color:#e5e5e5;padding:7px 14px;border-radius:4px;font-size:14px;cursor:pointer;font-family:'Heebo',sans-serif;transition:color 0.2s;white-space:nowrap;}
+.nav-btn:hover,.nav-btn.active{color:#fff;}
+.nav-btn.active{color:var(--accent);}
+.header-right{display:flex;align-items:center;gap:12px;margin-right:auto;}
+.search-wrap{position:relative;}
+.search-wrap input{background:rgba(0,0,0,0.7);border:1px solid #fff;border-radius:4px;padding:7px 38px 7px 12px;color:#fff;font-family:'Heebo',sans-serif;font-size:14px;outline:none;width:220px;transition:all 0.3s;}
+.search-wrap input:focus{background:rgba(20,20,20,0.95);}
+.search-wrap input::placeholder{color:#aaa;}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#aaa;font-size:16px;}
+.watchlist-btn{background:none;border:1px solid #ccc;color:#ccc;padding:6px 14px;border-radius:4px;font-size:13px;cursor:pointer;font-family:'Heebo',sans-serif;transition:all 0.2s;display:flex;align-items:center;gap:6px;white-space:nowrap;}
+.watchlist-btn:hover{border-color:#fff;color:#fff;}
+.wl-badge{background:var(--accent);color:#fff;border-radius:10px;padding:1px 6px;font-size:11px;font-weight:700;}
+.user-avatar{width:34px;height:34px;border-radius:4px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;cursor:pointer;position:relative;}
+.user-menu{
+  position:absolute;top:calc(100% + 12px);left:0;background:#141414;border:1px solid #333;
+  border-radius:4px;min-width:180px;padding:8px 0;display:none;
+  box-shadow:0 8px 32px rgba(0,0,0,0.8);
+}
+.user-avatar:hover .user-menu{display:block;}
+.user-menu-item{padding:10px 16px;font-size:14px;color:#e5e5e5;cursor:pointer;transition:background 0.2s;white-space:nowrap;}
+.user-menu-item:hover{background:#333;}
+.user-menu-item.signout{color:#aaa;border-top:1px solid #333;margin-top:6px;}
+
+/* HERO */
+.hero{height:86vh;min-height:500px;position:relative;display:flex;align-items:center;overflow:hidden;}
+.hero-bg{position:absolute;inset:0;background-size:cover;background-position:center top;transition:opacity 0.8s;}
+.hero-overlay{position:absolute;inset:0;background:linear-gradient(77deg,rgba(0,0,0,0.8) 0%,transparent 85%),linear-gradient(180deg,transparent 50%,var(--bg) 100%);}
+.hero-content{position:relative;padding:0 4%;max-width:40%;}
+.hero-logo-title{font-size:54px;font-weight:900;line-height:1.05;margin-bottom:20px;letter-spacing:-1px;text-shadow:2px 2px 8px rgba(0,0,0,0.5);}
+.hero-meta{display:flex;gap:12px;align-items:center;margin-bottom:14px;font-size:14px;}
+.hero-rating{color:var(--gold);font-weight:700;}
+.match{color:#46d369;font-weight:700;}
+.hero-overview{font-size:15px;line-height:1.7;color:#e5e5e5;margin-bottom:24px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+.hero-btns{display:flex;gap:10px;}
+.btn-play{background:#fff;color:#000;border:none;border-radius:4px;padding:12px 28px;font-size:16px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;display:flex;align-items:center;gap:8px;transition:all 0.2s;}
+.btn-play:hover{background:rgba(255,255,255,0.75);}
+.btn-info{background:rgba(109,109,110,0.7);color:#fff;border:none;border-radius:4px;padding:12px 24px;font-size:16px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;display:flex;align-items:center;gap:8px;transition:all 0.2s;}
+.btn-info:hover{background:rgba(109,109,110,0.5);}
+.maturity{position:absolute;left:0;bottom:30%;border-right:3px solid #ddd;padding:4px 12px;font-size:15px;color:#ddd;}
+
+/* ROW */
+.rows-wrap{padding:0 0 40px;}
+.row{margin-bottom:40px;}
+.row-title{font-size:20px;font-weight:700;padding:0 4%;margin-bottom:12px;color:#e5e5e5;}
+.row-scroll{display:flex;gap:6px;overflow-x:auto;padding:8px 4%;scrollbar-width:none;position:relative;}
+.row-scroll::-webkit-scrollbar{display:none;}
+
+/* CARD */
+.nf-card{flex-shrink:0;width:185px;border-radius:4px;overflow:hidden;cursor:pointer;position:relative;transition:transform 0.3s ease,z-index 0s 0.3s;z-index:1;}
+.nf-card:hover{transform:scale(1.35);z-index:10;transition:transform 0.3s ease 0.2s,z-index 0s 0.2s;}
+.nf-card:first-child:hover{transform:scale(1.35) translateX(15%);}
+.nf-card img{width:100%;aspect-ratio:2/3;object-fit:cover;display:block;background:#222;}
+.nf-card-no-img{width:100%;aspect-ratio:2/3;background:#222;display:flex;align-items:center;justify-content:center;font-size:48px;}
+.nf-card-hover{position:absolute;bottom:-1px;left:0;right:0;background:linear-gradient(0deg,#141414 0%,transparent 100%);opacity:0;transition:opacity 0.3s ease 0.2s;padding:10px 8px 8px;}
+.nf-card:hover .nf-card-hover{opacity:1;}
+.nf-card-title{font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px;}
+.nf-card-meta{font-size:10px;color:var(--gold);}
+
+/* GENRE PILLS */
+.genre-pills{display:flex;gap:8px;flex-wrap:wrap;padding:0 4% 20px;}
+.genre-pill{background:transparent;border:1px solid #555;color:#aaa;padding:6px 16px;border-radius:4px;font-size:13px;cursor:pointer;transition:all 0.2s;font-family:'Heebo',sans-serif;}
+.genre-pill.active,.genre-pill:hover{background:rgba(255,255,255,0.1);border-color:#aaa;color:#fff;}
+
+/* GRID */
+.grid-view{padding:20px 4%;display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:6px;}
+.grid-card{border-radius:4px;overflow:hidden;cursor:pointer;position:relative;transition:transform 0.2s;background:#222;}
+.grid-card:hover{transform:scale(1.05);z-index:5;}
+.grid-card img,.grid-card .no-img{width:100%;aspect-ratio:2/3;object-fit:cover;display:flex;align-items:center;justify-content:center;font-size:40px;}
+.grid-card-info{padding:8px;background:#1a1a1a;}
+.grid-card-title{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px;}
+.grid-card-meta{font-size:11px;color:var(--gold);}
+
+/* WATCHLIST PANEL */
+.wl-panel{position:fixed;top:0;left:0;bottom:0;width:320px;background:#141414;border-right:1px solid #333;z-index:300;transform:translateX(-100%);transition:transform 0.3s ease;display:flex;flex-direction:column;}
+.wl-panel.open{transform:translateX(0);}
+.wl-header{padding:20px 24px;border-bottom:1px solid #333;display:flex;align-items:center;justify-content:space-between;}
+.wl-title{font-size:18px;font-weight:700;}
+.wl-close{background:none;border:none;color:#aaa;font-size:22px;cursor:pointer;}
+.wl-items{flex:1;overflow-y:auto;padding:12px;}
+.wl-item{display:flex;gap:10px;padding:10px;border-radius:6px;background:#1a1a1a;border:1px solid #333;margin-bottom:8px;cursor:pointer;transition:border-color 0.2s;}
+.wl-item:hover{border-color:var(--accent);}
+.wl-poster{width:44px;height:66px;object-fit:cover;border-radius:3px;flex-shrink:0;background:#333;}
+.wl-info{flex:1;min-width:0;}
+.wl-name{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px;}
+.wl-meta{font-size:11px;color:#aaa;}
+.wl-rm{background:none;border:none;color:#666;cursor:pointer;font-size:16px;padding:2px;transition:color 0.2s;flex-shrink:0;}
+.wl-rm:hover{color:var(--accent);}
+.wl-empty{text-align:center;color:#666;padding:40px 20px;font-size:14px;line-height:1.7;}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.85);display:flex;align-items:flex-start;justify-content:center;z-index:200;padding:40px 20px;overflow-y:auto;animation:fadeIn 0.2s;}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+.modal{background:#141414;border-radius:8px;max-width:800px;width:100%;animation:modalUp 0.3s ease;position:relative;}
+@keyframes modalUp{from{transform:translateY(30px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.modal-close-btn{position:absolute;top:14px;left:14px;background:rgba(0,0,0,0.7);color:#fff;border:none;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;transition:background 0.2s;}
+.modal-close-btn:hover{background:rgba(0,0,0,0.9);}
+.modal-backdrop{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px 8px 0 0;display:block;}
+.modal-grad{height:80px;background:linear-gradient(0deg,#141414 0%,transparent 100%);margin-top:-80px;position:relative;}
+.modal-body{padding:0 28px 28px;}
+.modal-actions-row{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+.btn-modal-play{background:#fff;color:#000;border:none;border-radius:4px;padding:10px 22px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;display:flex;align-items:center;gap:7px;}
+.btn-modal-play:hover{background:rgba(255,255,255,0.75);}
+.btn-modal-wl{background:transparent;color:#fff;border:2px solid #888;border-radius:50%;width:40px;height:40px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;}
+.btn-modal-wl:hover{border-color:#fff;}
+.btn-modal-wl.saved{border-color:var(--gold);color:var(--gold);}
+.modal-title{font-size:26px;font-weight:700;margin-bottom:10px;}
+.modal-meta-row{display:flex;gap:12px;flex-wrap:wrap;font-size:14px;margin-bottom:14px;align-items:center;}
+.modal-match{color:#46d369;font-weight:700;}
+.modal-year{color:#aaa;}
+.modal-genres{color:#aaa;font-size:13px;}
+.modal-overview{font-size:14px;color:#ccc;line-height:1.75;margin-bottom:24px;}
+.watch-title{font-size:18px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.player-wrap{position:relative;padding-bottom:56.25%;height:0;border-radius:6px;overflow:hidden;margin-bottom:16px;background:#000;}
+.player-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:none;}
+.alt-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:20px;}
+.alt-item{background:#222;border:1px solid #333;border-radius:6px;padding:12px;cursor:pointer;transition:border-color 0.2s;}
+.alt-item:hover{border-color:var(--accent);}
+.alt-item-title{font-size:12px;font-weight:600;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:3px;}
+.alt-item-ch{font-size:11px;color:#aaa;}
+.no-video-box{background:#222;border-radius:8px;padding:24px;text-align:center;margin-bottom:20px;}
+.no-video-box p{color:#aaa;font-size:14px;margin-bottom:16px;}
+.ext-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;}
+.ext-link{background:#1a1a1a;border:1px solid #333;border-radius:6px;padding:14px;text-align:center;cursor:pointer;text-decoration:none;display:block;transition:all 0.2s;}
+.ext-link:hover{border-color:var(--accent);background:#222;}
+.ext-link-name{font-size:14px;font-weight:700;color:#fff;margin-bottom:3px;}
+.ext-link-sub{font-size:11px;color:#aaa;}
+.loading-main{text-align:center;padding:80px 20px;color:#aaa;}
+.spinner{width:40px;height:40px;margin:0 auto 16px;border:3px solid #333;border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;}
+
+@media(max-width:768px){
+  .auth-box,.verify-box{padding:40px 24px;margin:0 12px;}
+  .auth-header{padding:16px 24px;}
+  .header{padding:0 16px;}
+  .nav{display:none;}
+  .hero-content{max-width:90%;padding:0 16px;}
+  .hero-logo-title{font-size:32px;}
+  .row-title,.genre-pills{padding-left:16px;padding-right:16px;}
+  .row-scroll{padding:8px 16px;}
+  .grid-view{padding:16px;}
+  .nf-card{width:130px;}
+  .modal-body{padding:0 16px 20px;}
+}
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<!-- ============================= AUTH ============================= -->
+<div id="authScreen">
+  <!-- Login -->
+  <div id="loginView">
+    <div class="auth-header">
+      <div class="auth-logo">CINESTREAM</div>
+    </div>
+    <div class="auth-center">
+      <div class="auth-box">
+        <div class="auth-title">כניסה</div>
+        <button class="btn-google" onclick="signInGoogle()">
+          <img src="https://www.google.com/favicon.ico" alt="G"/>
+          המשך עם Google
+        </button>
+        <div class="divider">
+          <div class="divider-line"></div>
+          <div class="divider-text">או</div>
+          <div class="divider-line"></div>
+        </div>
+        <input class="auth-input" id="loginEmail" type="email" placeholder="אימייל" autocomplete="email"/>
+        <input class="auth-input" id="loginPass" type="password" placeholder="סיסמה" autocomplete="current-password"/>
+        <button class="btn-auth" id="loginBtn" onclick="doLogin()">כניסה</button>
+        <div class="auth-switch">משתמש חדש? <span onclick="showView('signup')">הרשמה עכשיו</span></div>
+        <div class="auth-switch" style="margin-top:8px"><span onclick="showForgot()">שכחת סיסמה?</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Signup -->
+  <div id="signupView" style="display:none">
+    <div class="auth-header">
+      <div class="auth-logo">CINESTREAM</div>
+    </div>
+    <div class="auth-center">
+      <div class="auth-box">
+        <div class="auth-title">הרשמה</div>
+        <button class="btn-google" onclick="signInGoogle()">
+          <img src="https://www.google.com/favicon.ico" alt="G"/>
+          הרשמה עם Google
+        </button>
+        <div class="divider">
+          <div class="divider-line"></div>
+          <div class="divider-text">או</div>
+          <div class="divider-line"></div>
+        </div>
+        <input class="auth-input" id="signupName" type="text" placeholder="שם מלא"/>
+        <input class="auth-input" id="signupEmail" type="email" placeholder="אימייל"/>
+        <input class="auth-input" id="signupPass" type="password" placeholder="סיסמה (לפחות 6 תווים)"/>
+        <input class="auth-input" id="signupPass2" type="password" placeholder="אשר סיסמה"/>
+        <button class="btn-auth" id="signupBtn" onclick="doSignup()">יצירת חשבון</button>
+        <div class="auth-switch">כבר יש חשבון? <span onclick="showView('login')">כניסה</span></div>
+        <div class="auth-footer-text">בלחיצה על "יצירת חשבון" אתה מסכים לתנאי השימוש ומדיניות הפרטיות של CineStream.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Verify Email -->
+  <div id="verifyView" style="display:none">
+    <div class="auth-header">
+      <div class="auth-logo">CINESTREAM</div>
+    </div>
+    <div class="auth-center">
+      <div class="verify-box">
+        <div class="verify-icon">📧</div>
+        <div class="verify-title">אמת את האימייל שלך</div>
+        <div class="verify-desc">
+          שלחנו קישור אימות לכתובת<br>
+          <span class="verify-email-highlight" id="verifyEmailShow"></span><br><br>
+          לחץ על הקישור בדואר האלקטרוני כדי להפעיל את חשבונך.
+        </div>
+        <button class="btn-check" onclick="checkVerified()">✅ אימתתי, כנס לאפליקציה</button>
+        <br><br>
+        <button class="btn-resend" onclick="resendVerification()">שלח שוב</button>
+        <br><br>
+        <div class="auth-switch">חשבון שגוי? <span onclick="doSignOut()">התנתק</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================= APP ============================= -->
+<div id="appScreen">
+  <!-- HEADER -->
+  <div class="header" id="appHeader">
+    <div class="logo" onclick="goHome()">CINESTREAM</div>
+    <div class="nav">
+      <button class="nav-btn active" id="navHome" onclick="setTab('home',this)">בית</button>
+      <button class="nav-btn" id="navMovies" onclick="setTab('top',this)">סרטים מדורגים</button>
+      <button class="nav-btn" id="navUpcoming" onclick="setTab('upcoming',this)">בקרוב</button>
+      <button class="nav-btn" id="navGenre" onclick="setTab('genre',this)">ז׳אנרים</button>
+    </div>
+    <div class="header-right">
+      <button class="watchlist-btn" onclick="toggleWL()">🤍 הרשימה שלי <span class="wl-badge" id="wlCount">0</span></button>
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="חפש..."/>
+      </div>
+      <div class="user-avatar" id="userAvatar">
+        <div class="user-menu" id="userMenu">
+          <div class="user-menu-item" id="menuName" style="font-weight:700;color:#fff;cursor:default;"></div>
+          <div class="user-menu-item" id="menuEmail" style="color:#888;font-size:12px;cursor:default;"></div>
+          <div class="user-menu-item signout" onclick="doSignOut()">🚪 התנתקות</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WATCHLIST PANEL -->
+  <div class="wl-panel" id="wlPanel">
+    <div class="wl-header">
+      <div class="wl-title">🤍 הרשימה שלי</div>
+      <button class="wl-close" onclick="toggleWL()">✕</button>
+    </div>
+    <div class="wl-items" id="wlItems"></div>
+  </div>
+
+  <div id="heroSection"></div>
+  <div id="rowsSection"></div>
+  <div id="genrePills"></div>
+  <div id="gridSection"></div>
+</div>
+
+<!-- FIREBASE SDK -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { 
+  getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
+  sendEmailVerification, sendPasswordResetEmail, signOut, onAuthStateChanged,
+  GoogleAuthProvider, signInWithPopup, updateProfile
+} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 🔥 הגדרות Firebase - REPLACE עם הנתונים שלך מ-console.firebase.google.com
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const firebaseConfig = {
+  apiKey: "AIzaSyCXMkJ5PJvNehDcodub8EdMkkfeN9BV2FE",
+  authDomain: "continue-fbb2e.firebaseapp.com",
+  projectId: "continue-fbb2e",
+  storageBucket: "continue-fbb2e.firebasestorage.app",
+  messagingSenderId: "695604465051",
+  appId: "1:695604465051:web:26e0f704f84f8ccf68253e",
+  measurementId: "G-66HVPJJF4G"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+
+// Expose to window
+window._auth = auth;
+window._fns = { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendEmailVerification, sendPasswordResetEmail, signOut, GoogleAuthProvider, signInWithPopup, updateProfile, provider };
+
+// Auth state listener
+onAuthStateChanged(auth, user => {
+  if(user) {
+    if(!user.emailVerified && !user.providerData.some(p=>p.providerId==='google.com')) {
+      document.getElementById('verifyEmailShow').textContent = user.email;
+      showView('verify');
+    } else {
+      enterApp(user);
+    }
+  } else {
+    showView('login');
+  }
+});
+
+</script>
+
+<script>
+// ══════════════════════════════════════════════
+// TMDB + YouTube
+// ══════════════════════════════════════════════
+const TMDB_KEY = '19ff298ebf712efe730e30c666d6728f';
+const YT_KEY   = 'AIzaSyDbl4iKKENUFxzkYxq4oTkvN4UxtGdAgtY';
+const TMDB = 'https://api.themoviedb.org/3';
+const YT   = 'https://www.googleapis.com/youtube/v3';
+const IMG  = 'https://image.tmdb.org/t/p/w300';
+const IMGBIG='https://image.tmdb.org/t/p/original';
+
+let genres=[], selectedGenre=null, currentTab='home', heroMovies=[], heroIdx=0, heroTimer=null, searchTimer=null;
+let watchlist = JSON.parse(localStorage.getItem('cs_wl')||'[]');
+
+// ─── TOAST ───
+function showToast(msg, type='info') {
+  const t = document.getElementById('toast');
+  t.innerHTML = msg; t.className = `toast ${type} show`;
+  setTimeout(() => t.className='toast', 3000);
+}
+
+// ─── VIEWS ───
+function showView(v) {
+  document.getElementById('authScreen').style.display='flex';
+  document.getElementById('authScreen').style.flexDirection='column';
+  document.getElementById('appScreen').style.display='none';
+  document.getElementById('loginView').style.display  = v==='login' ?'flex':'none';
+  document.getElementById('signupView').style.display = v==='signup'?'flex':'none';
+  document.getElementById('verifyView').style.display = v==='verify'?'flex':'none';
+  if(v==='login'||v==='signup') {
+    document.getElementById('loginView').style.flexDirection='column';
+    document.getElementById('signupView').style.flexDirection='column';
+  }
+}
+
+function enterApp(user) {
+  document.getElementById('authScreen').style.display='none';
+  document.getElementById('appScreen').style.display='block';
+  // Set avatar
+  const av = document.getElementById('userAvatar');
+  av.innerHTML = `<span>${(user.displayName||user.email||'U')[0].toUpperCase()}</span>` + av.querySelector('.user-menu').outerHTML;
+  document.getElementById('menuName').textContent = user.displayName || 'משתמש';
+  document.getElementById('menuEmail').textContent = user.email || '';
+  initApp();
+}
+
+// ─── AUTH ACTIONS ───
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass  = document.getElementById('loginPass').value;
+  if(!email||!pass){showToast('אנא מלא אימייל וסיסמה','error');return;}
+  const btn = document.getElementById('loginBtn');
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span>';
+  try {
+    await window._fns.signInWithEmailAndPassword(window._auth, email, pass);
+  } catch(e) {
+    btn.disabled=false; btn.textContent='כניסה';
+    const msgs={'auth/invalid-email':'אימייל לא תקין','auth/user-not-found':'משתמש לא קיים','auth/wrong-password':'סיסמה שגויה','auth/invalid-credential':'אימייל או סיסמה שגויים','auth/too-many-requests':'יותר מדי ניסיונות, נסה שוב מאוחר יותר'};
+    showToast(msgs[e.code]||e.message,'error');
+  }
+}
+
+async function doSignup() {
+  const name  = document.getElementById('signupName').value.trim();
+  const email = document.getElementById('signupEmail').value.trim();
+  const pass  = document.getElementById('signupPass').value;
+  const pass2 = document.getElementById('signupPass2').value;
+  if(!name){showToast('אנא הכנס שם מלא','error');return;}
+  if(!email){showToast('אנא הכנס אימייל','error');return;}
+  if(pass.length<6){showToast('הסיסמה חייבת להכיל לפחות 6 תווים','error');return;}
+  if(pass!==pass2){showToast('הסיסמאות לא תואמות','error');return;}
+  const btn=document.getElementById('signupBtn');
+  btn.disabled=true;btn.innerHTML='<span class="spin"></span> יוצר חשבון...';
+  try {
+    const cred = await window._fns.createUserWithEmailAndPassword(window._auth, email, pass);
+    await window._fns.updateProfile(cred.user,{displayName:name});
+    await window._fns.sendEmailVerification(cred.user);
+    document.getElementById('verifyEmailShow').textContent=email;
+    showView('verify');
+    showToast('📧 אימייל אימות נשלח!','success');
+  } catch(e) {
+    btn.disabled=false;btn.textContent='יצירת חשבון';
+    const msgs={'auth/email-already-in-use':'האימייל כבר בשימוש','auth/invalid-email':'אימייל לא תקין','auth/weak-password':'סיסמה חלשה מדי'};
+    showToast(msgs[e.code]||e.message,'error');
+  }
+}
+
+async function signInGoogle() {
+  try {
+    await window._fns.signInWithPopup(window._auth, window._fns.provider);
+  } catch(e) {
+    if(e.code!=='auth/popup-closed-by-user') showToast(e.message,'error');
+  }
+}
+
+async function checkVerified() {
+  try {
+    await window._auth.currentUser.reload();
+    if(window._auth.currentUser.emailVerified) {
+      enterApp(window._auth.currentUser);
+      showToast('✅ אימות הצליח! ברוך הבא','success');
+    } else {
+      showToast('האימייל טרם אומת. בדוק את תיבת הדואר שלך','error');
+    }
+  } catch(e){ showToast(e.message,'error'); }
+}
+
+async function resendVerification() {
+  try {
+    await window._fns.sendEmailVerification(window._auth.currentUser);
+    showToast('📧 אימייל נשלח מחדש!','success');
+  } catch(e){ showToast(e.message,'error'); }
+}
+
+async function showForgot() {
+  const email = prompt('הכנס את האימייל שלך לאיפוס סיסמה:');
+  if(!email) return;
+  try {
+    await window._fns.sendPasswordResetEmail(window._auth, email);
+    showToast('📧 קישור איפוס נשלח לאימייל שלך','success');
+  } catch(e){ showToast(e.message,'error'); }
+}
+
+async function doSignOut() {
+  await window._fns.signOut(window._auth);
+  watchlist=[]; localStorage.removeItem('cs_wl');
+  showToast('👋 התנתקת בהצלחה','info');
+}
+
+// ══════════════════════════════════════════════
+// APP LOGIC
+// ══════════════════════════════════════════════
+async function initApp() {
+  await loadGenres();
+  loadHero();
+  loadRows();
+  initSearch();
+  updateWLCount();
+  window.addEventListener('scroll',()=>{
+    document.getElementById('appHeader').classList.toggle('scrolled',window.scrollY>50);
+  });
+}
+
+async function api(path) {
+  const r = await fetch(`${TMDB}${path}${path.includes('?')?'&':'?'}api_key=${TMDB_KEY}&language=he`);
+  return r.json();
+}
+
+async function ytSearch(q) {
+  const r = await fetch(`${YT}/search?part=snippet&type=video&videoEmbeddable=true&videoDuration=long&q=${encodeURIComponent(q+' full movie')}&key=${YT_KEY}&maxResults=8`);
+  return r.json();
+}
+
+// Fix error 153: use youtube-nocookie.com + set origin correctly for file:// and localhost
+function ytEmbedUrl(videoId, autoplay=false) {
+  const isLocal = location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  const origin  = isLocal ? 'https://www.youtube-nocookie.com' : location.origin;
+  const params  = new URLSearchParams({
+    rel: '0',
+    modestbranding: '1',
+    enablejsapi: '1',
+    origin: origin,
+    ...(autoplay ? { autoplay: '1' } : {})
+  });
+  return `https://www.youtube-nocookie.com/embed/${videoId}?${params.toString()}`;
+}
+
+// ─── GENRES ───
+async function loadGenres(){
+  try { const d=await api('/genre/movie/list'); genres=d.genres||[]; } catch(e){}
+}
+
+// ─── HERO ───
+async function loadHero() {
+  try {
+    const d = await api('/movie/popular');
+    heroMovies = d.results?.slice(0,7)||[];
+    renderHero();
+    clearInterval(heroTimer);
+    heroTimer = setInterval(()=>{heroIdx=(heroIdx+1)%heroMovies.length;renderHero(true);},8000);
+  } catch(e){}
+}
+
+function renderHero(auto=false) {
+  const m = heroMovies[heroIdx];
+  if(!m) return;
+  document.getElementById('heroSection').innerHTML=`
+    <div class="hero">
+      <div class="hero-bg" style="background:url('${m.backdrop_path?IMGBIG+m.backdrop_path:''}') center/cover no-repeat"></div>
+      <div class="hero-overlay"></div>
+      <div class="hero-content">
+        <div class="hero-logo-title">${m.title}</div>
+        <div class="hero-meta">
+          <span class="match">התאמה ${Math.round(m.vote_average*10)}%</span>
+          <span class="hero-rating">★ ${m.vote_average?.toFixed(1)||''}</span>
+          <span style="color:#aaa">${m.release_date?.slice(0,4)||''}</span>
+        </div>
+        <div class="hero-overview">${m.overview||''}</div>
+        <div class="hero-btns">
+          <button class="btn-play" onclick="openMovie(${m.id})">▶ הפעל</button>
+          <button class="btn-info" onclick="openMovie(${m.id})">ⓘ מידע נוסף</button>
+        </div>
+      </div>
+      <div class="maturity">16+</div>
+    </div>`;
+}
+
+// ─── ROWS ───
+const rowDefs = [
+  {label:'🔥 טרנדינג עכשיו', path:'/trending/movie/week'},
+  {label:'⭐ המדורגים הגבוה', path:'/movie/top_rated'},
+  {label:'🎬 בקרוב לקולנוע',  path:'/movie/upcoming'},
+  {label:'💥 אקשן ופעולה',    path:'/discover/movie?with_genres=28'},
+  {label:'😂 קומדיות',         path:'/discover/movie?with_genres=35'},
+  {label:'💀 אימה ומתח',       path:'/discover/movie?with_genres=27'},
+  {label:'❤️ רומנטיקה',        path:'/discover/movie?with_genres=10749'},
+  {label:'🚀 מדע בדיוני',      path:'/discover/movie?with_genres=878'},
+];
+
+async function loadRows() {
+  if(currentTab!=='home'){document.getElementById('rowsSection').innerHTML='';return;}
+  document.getElementById('rowsSection').innerHTML='';
+  document.getElementById('gridSection').innerHTML='';
+  document.getElementById('genrePills').innerHTML='';
+  for(const row of rowDefs) {
+    try {
+      const d = await api(row.path+(row.path.includes('?')?'&':'?')+'sort_by=popularity.desc');
+      const movies = d.results?.slice(0,18)||[];
+      if(!movies.length) continue;
+      const div = document.createElement('div');
+      div.className='row';
+      div.innerHTML=`<div class="row-title">${row.label}</div>
+      <div class="row-scroll">${movies.map(m=>`
+        <div class="nf-card" onclick="openMovie(${m.id})">
+          ${m.poster_path?`<img src="${IMG+m.poster_path}" alt="${m.title}" loading="lazy"/>`:`<div class="nf-card-no-img">🎬</div>`}
+          <div class="nf-card-hover">
+            <div class="nf-card-title">${m.title}</div>
+            <div class="nf-card-meta">★ ${m.vote_average?.toFixed(1)||'?'}</div>
+          </div>
+        </div>`).join('')}
+      </div>`;
+      document.getElementById('rowsSection').appendChild(div);
+    } catch(e){}
+  }
+}
+
+// ─── TABS ───
+function setTab(t, btn) {
+  currentTab=t; selectedGenre=null;
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  document.getElementById('heroSection').innerHTML='';
+  document.getElementById('rowsSection').innerHTML='';
+  document.getElementById('genrePills').innerHTML='';
+  document.getElementById('gridSection').innerHTML='';
+  if(t==='home'){loadHero();loadRows();}
+  else if(t==='genre'){renderGenrePills();}
+  else loadGrid();
+}
+
+function goHome(){setTab('home',document.getElementById('navHome'));}
+
+// ─── GENRE ───
+function renderGenrePills(){
+  document.getElementById('genrePills').innerHTML=`<div style="padding:20px 4% 0;font-size:20px;font-weight:700;margin-bottom:16px">🎭 ז׳אנרים</div><div class="genre-pills">${genres.map(g=>`<button class="genre-pill ${selectedGenre===g.id?'active':''}" onclick="pickGenre(${g.id},this)">${g.name}</button>`).join('')}</div>`;
+}
+
+function pickGenre(id,el){
+  selectedGenre=id;
+  document.querySelectorAll('.genre-pill').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  loadGrid();
+}
+
+// ─── GRID ───
+async function loadGrid(){
+  const grid=document.getElementById('gridSection');
+  grid.innerHTML=`<div class="loading-main"><div class="spinner"></div>טוען...</div>`;
+  try {
+    let path,label;
+    if(currentTab==='top'){path='/movie/top_rated';label='⭐ המדורגים הגבוה';}
+    else if(currentTab==='upcoming'){path='/movie/upcoming';label='🎬 בקרוב לקולנוע';}
+    else{path=`/discover/movie?sort_by=popularity.desc${selectedGenre?'&with_genres='+selectedGenre:''}`;label=selectedGenre?genres.find(g=>g.id===selectedGenre)?.name:"כל הז׳אנרים";}
+    const d=await api(path);
+    grid.innerHTML=`<div style="padding:20px 4% 8px;font-size:20px;font-weight:700">${label}</div><div class="grid-view">${(d.results||[]).map(m=>`
+      <div class="grid-card" onclick="openMovie(${m.id})">
+        ${m.poster_path?`<img src="${IMG+m.poster_path}" alt="${m.title}" loading="lazy"/>`:`<div class="no-img" style="aspect-ratio:2/3;display:flex;align-items:center;justify-content:center;font-size:40px">🎬</div>`}
+        <div class="grid-card-info">
+          <div class="grid-card-title">${m.title}</div>
+          <div class="grid-card-meta">★ ${m.vote_average?.toFixed(1)||'?'} · ${m.release_date?.slice(0,4)||''}</div>
+        </div>
+      </div>`).join('')}
+    </div>`;
+  } catch(e){ grid.innerHTML='<div class="loading-main">שגיאה בטעינה ❌</div>'; }
+}
+
+// ─── SEARCH ───
+function initSearch(){
+  document.getElementById('searchInput').addEventListener('input',e=>{
+    clearTimeout(searchTimer);
+    const q=e.target.value.trim();
+    if(!q){goHome();return;}
+    searchTimer=setTimeout(async()=>{
+      currentTab='search';
+      document.getElementById('heroSection').innerHTML='';
+      document.getElementById('rowsSection').innerHTML='';
+      document.getElementById('genrePills').innerHTML='';
+      const grid=document.getElementById('gridSection');
+      grid.innerHTML=`<div class="loading-main"><div class="spinner"></div>מחפש...</div>`;
+      try{
+        const d=await api(`/search/movie?query=${encodeURIComponent(q)}`);
+        grid.innerHTML=`<div style="padding:20px 4% 8px;font-size:20px;font-weight:700">🔍 תוצאות עבור "${q}"</div><div class="grid-view">${(d.results||[]).map(m=>`
+          <div class="grid-card" onclick="openMovie(${m.id})">
+            ${m.poster_path?`<img src="${IMG+m.poster_path}" alt="${m.title}" loading="lazy"/>`:`<div class="no-img" style="aspect-ratio:2/3;display:flex;align-items:center;justify-content:center;font-size:40px">🎬</div>`}
+            <div class="grid-card-info">
+              <div class="grid-card-title">${m.title}</div>
+              <div class="grid-card-meta">★ ${m.vote_average?.toFixed(1)||'?'}</div>
+            </div>
+          </div>`).join('')}
+        </div>`;
+      }catch(e){}
+    },400);
+  });
+}
+
+// ─── WATCHLIST ───
+function updateWLCount(){ document.getElementById('wlCount').textContent=watchlist.length; }
+function toggleWL(){ document.getElementById('wlPanel').classList.toggle('open'); renderWLItems(); }
+
+function renderWLItems(){
+  const el=document.getElementById('wlItems');
+  if(!watchlist.length){el.innerHTML='<div class="wl-empty">🎬 רשימת הצפייה שלך ריקה<br><br>לחץ ➕ על סרט כדי להוסיף</div>';return;}
+  el.innerHTML=watchlist.map(m=>`
+    <div class="wl-item" onclick="openMovie(${m.id})">
+      ${m.poster?`<img class="wl-poster" src="${IMG+m.poster}"/>`:`<div class="wl-poster" style="display:flex;align-items:center;justify-content:center;font-size:22px">🎬</div>`}
+      <div class="wl-info">
+        <div class="wl-name">${m.title}</div>
+        <div class="wl-meta">★ ${m.rating} · ${m.year}</div>
+      </div>
+      <button class="wl-rm" onclick="event.stopPropagation();removeWL(${m.id})">✕</button>
+    </div>`).join('');
+}
+
+function addWL(movie){
+  if(watchlist.find(m=>m.id===movie.id)){removeWL(movie.id);return false;}
+  watchlist.unshift(movie);
+  localStorage.setItem('cs_wl',JSON.stringify(watchlist));
+  updateWLCount(); showToast('❤️ נוסף לרשימה!','success'); return true;
+}
+
+function removeWL(id){
+  watchlist=watchlist.filter(m=>m.id!==id);
+  localStorage.setItem('cs_wl',JSON.stringify(watchlist));
+  updateWLCount(); renderWLItems(); showToast('הוסר מהרשימה','info');
+}
+
+function isWL(id){ return watchlist.some(m=>m.id===id); }
+
+// ─── MOVIE MODAL ───
+async function openMovie(id){
+  document.body.style.overflow='hidden';
+  const bg=document.createElement('div');
+  bg.className='modal-bg';bg.id='movieModal';
+  bg.innerHTML=`<div class="modal"><div class="loading-main" style="padding:60px"><div class="spinner"></div><div>מחפש...</div></div></div>`;
+  bg.onclick=e=>{if(e.target===bg)closeModal();};
+  document.body.appendChild(bg);
+  showToast('⏳ טוען פרטי סרט...','info');
+  try {
+    const d=await api(`/movie/${id}`);
+    const ytD=await ytSearch(d.title+' '+(d.release_date?.slice(0,4)||''));
+    const videos=(ytD.items||[]).filter(v=>v.id?.videoId);
+    renderModal(d,videos);
+  } catch(e){ closeModal(); showToast('שגיאה בטעינה ❌','error'); }
+}
+
+function renderModal(d,videos){
+  const modal=document.getElementById('movieModal');
+  if(!modal) return;
+  const v=videos[0]; const inWL=isWL(d.id);
+  modal.querySelector('.modal').innerHTML=`
+    <button class="modal-close-btn" onclick="closeModal()">✕</button>
+    ${d.backdrop_path?`<img class="modal-backdrop" src="${IMGBIG+d.backdrop_path}" alt=""/>`:''}
+    <div class="modal-grad"></div>
+    <div class="modal-body">
+      <div class="modal-actions-row">
+        <button class="btn-modal-play" onclick="${v?`switchVideoInline('${v.id.videoId}')`:`void(0)`}">${v?'▶ הפעל':'▶ חפש ב-YouTube'}</button>
+        <button class="btn-modal-wl ${inWL?'saved':''}" id="wlModalBtn" onclick="toggleWLModal(${d.id},'${escHtml(d.title)}','${d.poster_path||''}','${d.vote_average?.toFixed(1)||'?'}','${d.release_date?.slice(0,4)||''}')" title="${inWL?'הסר מהרשימה':'הוסף לרשימה'}">${inWL?'❤️':'🤍'}</button>
+      </div>
+      <div class="modal-title">${d.title}</div>
+      <div class="modal-meta-row">
+        <span class="modal-match">התאמה ${Math.round(d.vote_average*10)}%</span>
+        <span class="modal-year">${d.release_date?.slice(0,4)||''}</span>
+        ${d.runtime?`<span class="modal-year">${Math.floor(d.runtime/60)}ש' ${d.runtime%60}ד'</span>`:''}
+        ${d.genres?.slice(0,4).map(g=>`<span class="modal-genres">${g.name}</span>`).join(' · ')||''}
+      </div>
+      <div class="modal-overview">${d.overview||'אין תיאור זמין.'}</div>
+
+      ${v?`
+        <div class="watch-title">▶ צפה בסרט</div>
+        <div class="player-wrap" id="mainPlayer">
+          <iframe src="${ytEmbedUrl(v.id.videoId)}" allowfullscreen allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture"></iframe>
+        </div>
+        ${videos.length>1?`<div style="font-size:14px;color:#aaa;margin-bottom:8px">גרסאות נוספות:</div>
+        <div class="alt-list">${videos.slice(1).map(av=>`
+          <div class="alt-item" onclick="switchVideo('${av.id.videoId}')">
+            <div class="alt-item-title">▶ ${av.snippet.title}</div>
+            <div class="alt-item-ch">${av.snippet.channelTitle}</div>
+          </div>`).join('')}</div>`:''}`
+      :`<div class="no-video-box">
+        <p>לא נמצא סרט מלא ב-YouTube — חפש באתרים חינמיים:</p>
+        <div class="ext-grid">
+          <a class="ext-link" href="https://tubi.tv/search?q=${encodeURIComponent(d.title)}" target="_blank"><div class="ext-link-name">Tubi</div><div class="ext-link-sub">חינם + פרסומות</div></a>
+          <a class="ext-link" href="https://pluto.tv/search?q=${encodeURIComponent(d.title)}" target="_blank"><div class="ext-link-name">Pluto TV</div><div class="ext-link-sub">חינם + פרסומות</div></a>
+          <a class="ext-link" href="https://plex.tv/movies?q=${encodeURIComponent(d.title)}" target="_blank"><div class="ext-link-name">Plex</div><div class="ext-link-sub">חינם + פרסומות</div></a>
+        </div>
+      </div>`}
+    </div>`;
+}
+
+function escHtml(s){ return (s||'').replace(/'/g,"\\'"); }
+
+function switchVideo(id){
+  const p=document.querySelector('#mainPlayer iframe');
+  if(p) p.src=ytEmbedUrl(id, true);
+}
+
+function switchVideoInline(id){
+  const p=document.getElementById('mainPlayer');
+  if(p) p.querySelector('iframe').src=ytEmbedUrl(id, true);
+}
+
+function toggleWLModal(id,title,poster,rating,year){
+  const added=addWL({id,title,poster,rating,year});
+  const btn=document.getElementById('wlModalBtn');
+  if(btn){btn.className='btn-modal-wl '+(added?'saved':'');btn.textContent=added?'❤️':'🤍';}
+}
+
+function closeModal(){
+  document.getElementById('movieModal')?.remove();
+  document.body.style.overflow='';
+}
+</script>
+</body>
+</html>
